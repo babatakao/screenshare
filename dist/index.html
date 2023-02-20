@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<title>screen share</title>
+<style>
+  html,
+  body {
+    margin: 0;
+    background: black;
+  }
+
+  video {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    object-fit: contain;
+  }
+
+  aside {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #ffffff60;
+    border-bottom: 1px solid #00000090;
+    padding: 20px;
+    transition: opacity 0.5s ease;
+  }
+
+</style>
+
+<body>
+  <video id="video" autoplay></video>
+  <aside id="controls">
+    <button id="start">start</button>
+    <button id="stop">stop</button>
+    <button id="fitstyle" disabled>fit: contain</button>
+  </aside>
+  <script>
+    const videoElement = document.getElementById('video');
+    const controlElement = document.getElementById('controls');
+    const fitStyleButton = document.getElementById('fitstyle');
+
+    document.getElementById('start').addEventListener('click', startCapture);
+    document.getElementById('stop').addEventListener('click', stopCapture);
+    fitStyleButton.addEventListener('click', toggleFitStyle);
+    controlElement.addEventListener('click', ev => ev.stopPropagation());
+
+    document.addEventListener('click', () => {
+      controlElement.style.opacity = getComputedStyle(controlElement).opacity === '1' ? '0' : '1';
+    });
+
+    async function startCapture(ev) {
+      const displayMediaOptions = { video: { displaySurface: 'window' }, audio: false };
+      try {
+        videoElement.srcObject = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
+        fitStyleButton.removeAttribute('disabled');
+      } catch (err) {
+        console.error(`Error: ${err}`);
+      }
+    }
+
+    function stopCapture(ev) {
+      const tracks = videoElement.srcObject.getTracks();
+
+      tracks.forEach((track) => track.stop());
+      videoElement.srcObject = null;
+      fitStyleButton.setAttribute('disabled', true);
+    }
+
+    function toggleFitStyle() {
+      const next = {
+        contain: 'cover',
+        cover: 'none',
+        none: 'contain',
+      }[getComputedStyle(videoElement).objectFit];
+
+      videoElement.style.objectFit = next;
+      fitStyleButton.textContent = `fit: ${next}`;
+    }
+  </script>
+</body>
+
+</html>
